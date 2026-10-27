@@ -143,8 +143,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </form>
     <div class="card done" id="doneCard" hidden>
       <strong id="doneMsg"></strong>
-      <p class="muted">투표 내용은 관리자만 볼 수 있어요. 같은 기기에서 다른 사람이 투표하려면 아래 버튼을 눌러 주세요.</p>
-      <button type="button" id="nextBtn">다음 사람 투표하기</button>
+      <p class="muted">투표 내용은 관리자만 볼 수 있어요. 마음이 바뀌면 아래 버튼을 눌러 수정할 수 있어요.</p>
+      <button type="button" id="editBtn">수정하기</button>
     </div>
   </section>
 </div>
@@ -256,11 +256,14 @@ async function confirmSaved(name){
   return false;
 }
 
-$("nextBtn").addEventListener("click", () => {
-  $("voteForm").reset(); renderWho();
+// 방금 낸 이름·시안·의견을 그대로 둔 채 투표 화면으로 돌아가요.
+$("editBtn").addEventListener("click", () => {
+  $("whoInfo").replaceChildren();
+  $("formStatus").textContent = "";
+  $("submitBtn").textContent = "투표 수정";
   $("doneCard").hidden = true; $("voteForm").hidden = false;
-  loadNames();
-  $("voterSelect").focus();
+  const picked = document.querySelector('input[name="choice"]:checked');
+  (picked || $("voterSelect")).focus();
 });
 
 renderDrafts();
