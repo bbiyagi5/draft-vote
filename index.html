@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>바리바디 x 헬로키티 콜라보 시안 투표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<script>
+/* ================================================================
+   여기만 고치면 돼요
+   ================================================================ */
+const CONFIG = {
+  // Apps Script 웹 앱 URL (배포 후 받은 주소를 따옴표 안에 붙여넣기)
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxlKUE2pZnyxmgX85UTPh-giKSUFYGF6rIZ7aEs_Da0kKr-2tFuyXp9RnGcBDWIeUzG/exec",
+
+  // 시안 정보. 이미지는 images 폴더에 같은 이름으로 올리면 돼요.
+  DRAFTS: [
+    { id: "A", title: "시안 A", desc: "", image: "images/A.png" },
+    { id: "B", title: "시안 B", desc: "", image: "images/B.png" },
+    { id: "C", title: "시안 C", desc: "", image: "images/C.png" },
+    { id: "D", title: "시안 D", desc: "", image: "images/D.png" },
+    { id: "E", title: "시안 E", desc: "", image: "images/E.png" },
+  ],
+};
+</script>
+<style>
+:root{
+  --bg:#f5f6f3; --surface:#ffffff; --ink:#1d2320; --muted:#5f6a64; --line:#dde1dc;
+  --accent:#2f5d50; --accent-soft:#dbe8e2; --accent-ink:#ffffff;
+  --men:#9fbfb3; --warn:#a2452e; --warn-soft:#f6e3dc;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#151917; --surface:#1d2321; --ink:#e7ece9; --muted:#9aa6a0; --line:#2f3733;
+  --accent:#7fc2ab; --accent-soft:#24362f; --accent-ink:#10201a;
+  --men:#4c7366; --warn:#e8937c; --warn-soft:#3a2520; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:960px;margin:0 auto;padding-block:40px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:44px}
+h1,h2{margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:1.9rem;font-weight:700}
+h2{font-size:1.2rem;font-weight:700}
+p{margin:0}
+[hidden]{display:none!important}
+.eyebrow{font-size:.75rem;letter-spacing:.08em;color:var(--muted);font-weight:600}
+header{display:flex;flex-direction:column;gap:10px}
+.rule{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:.85rem}
+.chip b{font-family:var(--f-num);font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.dot.f{background:var(--accent)} .dot.m{background:var(--men)}
+section{display:flex;flex-direction:column;gap:16px}
+.muted{color:var(--muted)}
+.notice{border-radius:var(--r);padding:12px 14px;background:var(--warn-soft);color:var(--warn);font-size:.9rem}
+
+.drafts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+.draft{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.thumb{aspect-ratio:4/3;max-width:100%;background:var(--accent-soft);display:grid;place-items:center;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.thumb .ph{font-family:var(--f-num);font-size:2.4rem;font-weight:600;color:var(--accent);opacity:.55}
+.thumb .tag{position:absolute;top:8px;left:8px;background:var(--surface);color:var(--ink);font-family:var(--f-num);font-weight:600;font-size:.8rem;border-radius:6px;padding:1px 8px}
+.draft .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.draft .t{font-weight:600}
+.draft .d{font-size:.85rem;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:20px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field > label,.field > .lbl{font-weight:600;font-size:.9rem}
+.req{color:var(--warn)}
+textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%}
+select{max-width:360px}
+textarea{min-height:84px;resize:vertical}
+textarea:focus-visible,select:focus-visible,button:focus-visible,.opt input:focus-visible + span{outline:2px solid var(--accent);outline-offset:2px}
+.who{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.88rem}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{position:relative}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.opt span{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:9px 14px;background:var(--bg);cursor:pointer;min-width:64px;justify-content:center}
+.opt input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;padding:11px 22px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.status{font-size:.9rem}
+.status.ok{color:var(--accent)} .status.err{color:var(--warn)}
+.done{display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.done strong{font-size:1.1rem}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.8);display:grid;place-items:center;z-index:50;padding:24px;cursor:zoom-out}
+.lightbox img{max-height:90vh;border-radius:8px}
+@media (max-width:520px){ h1{font-size:1.55rem} .card{padding:16px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">제품 기획 · 시안 선정</span>
+    <h1>바리바디 x 헬로키티 콜라보 시안 투표</h1>
+    <p class="muted">5개 시안을 보고 가장 좋은 하나를 골라 주세요. 명단에서 본인 이름을 고르고, 의견도 함께 남겨 주세요.</p>
+    <div class="rule">
+      <span class="chip"><span class="dot f"></span>여성 <b>1표</b></span>
+      <span class="chip"><span class="dot m"></span>남성 <b>0.5표</b></span>
+      <span class="chip">결과는 비공개</span>
+    </div>
+  </header>
+
+  <div id="globalNotice" class="notice" hidden></div>
+
+  <section aria-labelledby="h-drafts">
+    <h2 id="h-drafts">시안 보기</h2>
+    <div class="drafts" id="drafts"></div>
+  </section>
+
+  <section aria-labelledby="h-vote">
+    <h2 id="h-vote">투표하기</h2>
+    <form class="card" id="voteForm" novalidate>
+      <div class="field">
+        <label for="voterSelect">내 이름 <span class="req">*</span></label>
+        <select id="voterSelect"><option value="">명단을 불러오는 중…</option></select>
+        <div class="who" id="whoInfo"></div>
+      </div>
+      <div class="field">
+        <span class="lbl" id="lbl-choice">선택한 시안 <span class="req">*</span></span>
+        <div class="opts" id="choiceOpts" role="radiogroup" aria-labelledby="lbl-choice"></div>
+      </div>
+      <div class="field">
+        <label for="voterComment">의견 <span class="muted" style="font-weight:400">(선택)</span></label>
+        <textarea id="voterComment" maxlength="1000" placeholder="이 시안을 고른 이유, 보완하면 좋을 점 등"></textarea>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary" id="submitBtn">투표 제출</button>
+        <span class="status" id="formStatus" role="status"></span>
+      </div>
+    </form>
+    <div class="card done" id="doneCard" hidden>
+      <strong id="doneMsg"></strong>
+      <p class="muted">투표 내용은 관리자만 볼 수 있어요. 같은 기기에서 다른 사람이 투표하려면 아래 버튼을 눌러 주세요.</p>
+      <button type="button" id="nextBtn">다음 사람 투표하기</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+function h(tag, attrs, ...kids){
+  const el = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs || {})){
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? "" : v);
+  }
+  for (const c of kids.flat()) if (c != null && c !== false) el.append(c instanceof Node ? c : String(c));
+  return el;
+}
+function notice(msg){ const n = $("globalNotice"); n.textContent = msg; n.hidden = !msg; }
+
+let names = [], voted = new Set();
+
+/* 시안 카드 */
+function renderDrafts(){
+  $("drafts").replaceChildren(...CONFIG.DRAFTS.map(d => {
+    const thumb = h("div", { class: "thumb" }, h("span", { class: "tag" }, d.id));
+    if (d.image){
+      const img = h("img", { src: d.image, alt: d.title + " 이미지", loading: "lazy", onclick: () => openLightbox(d.image) });
+      img.addEventListener("error", () => img.replaceWith(h("span", { class: "ph" }, d.id)));
+      thumb.append(img);
+    } else thumb.append(h("span", { class: "ph" }, d.id));
+    return h("article", { class: "draft" }, thumb,
+      h("div", { class: "body" }, h("span", { class: "t" }, d.title), d.desc ? h("span", { class: "d" }, d.desc) : null));
+  }));
+  $("choiceOpts").replaceChildren(...CONFIG.DRAFTS.map(d => h("label", { class: "opt" },
+    h("input", { type: "radio", name: "choice", id: "c-" + d.id, value: d.id }),
+    h("span", null, h("b", null, d.id), d.title && d.title !== "시안 " + d.id ? " " + d.title : ""))));
+}
+function openLightbox(src){
+  const lb = h("div", { class: "lightbox", onclick: () => lb.remove() }, h("img", { src, alt: "" }));
+  document.body.append(lb);
+}
+
+/* 이름 목록 */
+function renderNames(){
+  const sel = $("voterSelect"); const cur = sel.value;
+  if (!names.length){ sel.replaceChildren(h("option", { value: "" }, "명단이 아직 없어요")); renderWho(); return; }
+  sel.replaceChildren(h("option", { value: "" }, "이름을 골라 주세요"),
+    ...names.map(n => h("option", { value: n, selected: n === cur }, n + (voted.has(n) ? "  (투표 완료)" : ""))));
+  renderWho();
+}
+function renderWho(){
+  const n = $("voterSelect").value;
+  $("whoInfo").replaceChildren(n && voted.has(n) ? h("span", { class: "status err" }, "이미 투표한 이름이에요. 다시 제출하면 이전 투표가 바뀌어요.") : "");
+}
+$("voterSelect").addEventListener("change", renderWho);
+
+async function loadNames(){
+  try {
+    const res = await fetch(CONFIG.SCRIPT_URL, { method: "GET" });
+    const data = await res.json();
+    if (!data.ok) throw new Error();
+    names = data.names || []; voted = new Set(data.voted || []);
+    renderNames();
+  } catch (e) {
+    $("voterSelect").replaceChildren(h("option", { value: "" }, "명단을 불러오지 못했어요"));
+    notice("명단을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요.");
+  }
+}
+
+/* 제출 */
+$("voteForm").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const st = $("formStatus");
+  const name = $("voterSelect").value;
+  const choice = (document.querySelector('input[name="choice"]:checked') || {}).value;
+  const comment = $("voterComment").value.trim();
+  const missing = [!name && "이름", !choice && "시안"].filter(Boolean);
+  if (missing.length){ st.className = "status err"; st.textContent = missing.join(", ") + "을(를) 골라 주세요."; return; }
+  const btn = $("submitBtn"); btn.disabled = true;
+  st.className = "status"; st.textContent = "저장 중…";
+  try {
+    // text/plain 으로 보내야 브라우저가 사전 확인 요청 없이 바로 전송해요.
+    const res = await fetch(CONFIG.SCRIPT_URL, { method: "POST", body: JSON.stringify({ name, choice, comment }) });
+    const data = await res.json();
+    if (!data.ok){ st.className = "status err"; st.textContent = data.error || "저장하지 못했어요."; return; }
+    voted.add(name); renderNames();
+    st.textContent = "";
+    $("doneMsg").textContent = name + "님, 투표가 저장됐어요.";
+    $("voteForm").hidden = true; $("doneCard").hidden = false;
+  } catch (e) {
+    st.className = "status err"; st.textContent = "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.";
+  } finally { btn.disabled = false; }
+});
+
+$("nextBtn").addEventListener("click", () => {
+  $("voteForm").reset(); renderWho();
+  $("doneCard").hidden = true; $("voteForm").hidden = false;
+  loadNames();
+  $("voterSelect").focus();
+});
+
+renderDrafts();
+if (!CONFIG.SCRIPT_URL){
+  notice("아직 구글 시트와 연결되지 않았어요. index.html 위쪽 CONFIG의 SCRIPT_URL에 웹 앱 주소를 넣어 주세요.");
+  $("voterSelect").replaceChildren(h("option", { value: "" }, "연결 전이에요"));
+  $("submitBtn").disabled = true;
+} else {
+  loadNames();
+}
+</script>
+</body>
+</html>
