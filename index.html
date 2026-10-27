@@ -225,19 +225,36 @@ $("voteForm").addEventListener("submit", async (ev) => {
   if (missing.length){ st.className = "status err"; st.textContent = missing.join(", ") + "을(를) 골라 주세요."; return; }
   const btn = $("submitBtn"); btn.disabled = true;
   st.className = "status"; st.textContent = "저장 중…";
+  let ok = false;
   try {
     // text/plain 으로 보내야 브라우저가 사전 확인 요청 없이 바로 전송해요.
     const res = await fetch(CONFIG.SCRIPT_URL, { method: "POST", body: JSON.stringify({ name, choice, comment }) });
     const data = await res.json();
-    if (!data.ok){ st.className = "status err"; st.textContent = data.error || "저장하지 못했어요."; return; }
-    voted.add(name); renderNames();
-    st.textContent = "";
-    $("doneMsg").textContent = name + "님, 투표가 저장됐어요.";
-    $("voteForm").hidden = true; $("doneCard").hidden = false;
+    if (!data.ok){ st.className = "status err"; st.textContent = data.error || "저장하지 못했어요."; btn.disabled = false; return; }
+    ok = true;
   } catch (e) {
-    st.className = "status err"; st.textContent = "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요.";
-  } finally { btn.disabled = false; }
+    // 일부 브라우저는 저장은 됐는데 답을 읽지 못해요. 시트에서 투표 여부를 다시 확인해요.
+    ok = await confirmSaved(name);
+  }
+  btn.disabled = false;
+  if (!ok){ st.className = "status err"; st.textContent = "저장하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요."; return; }
+  voted.add(name); renderNames();
+  st.textContent = "";
+  $("doneMsg").textContent = name + "님, 투표가 저장됐어요.";
+  $("voteForm").hidden = true; $("doneCard").hidden = false;
 });
+
+async function confirmSaved(name){
+  for (let i = 0; i < 2; i++){
+    try {
+      const res = await fetch(CONFIG.SCRIPT_URL + "?t=" + Date.now(), { method: "GET" });
+      const data = await res.json();
+      if ((data.voted || []).includes(name)) return true;
+    } catch (e) {}
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  return false;
+}
 
 $("nextBtn").addEventListener("click", () => {
   $("voteForm").reset(); renderWho();
